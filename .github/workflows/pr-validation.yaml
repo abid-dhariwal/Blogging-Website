@@ -1,0 +1,53 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  linting:
+    name: Lint HTML and CSS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm install htmlhint stylelint
+
+      - name: Lint HTML files
+        run: npx htmlhint "src/**/*.html"
+        continue-on-error: false
+
+      - name: Lint CSS files
+        run: npx stylelint "styles/**/*.css"
+        continue-on-error: false
+
+  build:
+    name: Build Static Website
+    runs-on: ubuntu-latest
+    needs: linting
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm install parcel
+
+      - name: Build the project
+        run: npx parcel build src/index.html --dist-dir dist
