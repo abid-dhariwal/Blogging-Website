@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: wf-deploy-development
 
 on:
   push:
@@ -6,34 +6,28 @@ on:
       - develop
 
 jobs:
-  build:
+  build-develop-job:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Build website
+        run: |
+          npx parcel build "./src/index.html" --dist-dir "./dev" --public-url "./"
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./dev"
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'
-
-    - name: Install dependencies
-      run: npm install
-
-    - name: Build the website
-      run: npx parcel build src/index.html
-
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: ./dist
-
-  deploy:
+  deploy-develop-job:
+    needs: build-develop-job
+    environment: "deployment-env"
+    permissions:
+      pages: write
+      id-token: write
     runs-on: ubuntu-latest
-
-    needs: build
-
     steps:
-    - name: Deploy to GitHub Pages
-      uses: actions/deploy-pages@v4
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
